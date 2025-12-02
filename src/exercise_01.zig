@@ -15,6 +15,8 @@ pub fn execute() !void {
 
     var loops: u16 = 0;
     var count: u16 = 0;
+
+    const start_ms = std.time.milliTimestamp();
     for (steps) |step| {
         const loop = rotations(0, positions, cursor, step);
 
@@ -32,9 +34,11 @@ pub fn execute() !void {
 
         std.debug.print("|  Move {d:<3} clicks to {s:<5}: {d:<2}  |  Loops: {d}  |\n", .{ @abs(step), direction, cursor, loops });
     }
+    const end_ms = std.time.milliTimestamp();
 
     std.debug.print("\nZeroes: {d}\n", .{count});
-    std.debug.print("Loops: {d}\n\n", .{loops});
+    std.debug.print("Loops: {d}\n", .{loops});
+    std.debug.print("Time: {d}ms\n\n", .{end_ms - start_ms});
 }
 
 fn parse_input(allocator: std.mem.Allocator) ![]i64 {
