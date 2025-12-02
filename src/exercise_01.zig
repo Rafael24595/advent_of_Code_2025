@@ -1,6 +1,10 @@
 const std = @import("std");
 
 pub fn execute() !void {
+    std.debug.print("\n------------------------", .{});
+    std.debug.print("\n|  Exercise 1.1 / 1.2  |", .{});
+    std.debug.print("\n------------------------\n\n", .{});
+
     const alloc = std.heap.page_allocator;
 
     const steps = try parse_input(alloc);
@@ -30,7 +34,7 @@ pub fn execute() !void {
     }
 
     std.debug.print("\nZeroes: {d}\n", .{count});
-    std.debug.print("Loops: {d}\n", .{loops});
+    std.debug.print("Loops: {d}\n\n", .{loops});
 }
 
 fn parse_input(allocator: std.mem.Allocator) ![]i64 {
