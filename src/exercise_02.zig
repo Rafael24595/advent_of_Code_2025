@@ -79,8 +79,8 @@ fn parse_input(alloc: std.mem.Allocator) ![]helper.Pair {
 }
 
 fn findGeneralizedRepunits(alloc: std.mem.Allocator, min: usize, max: usize, fix_blocks: ?usize) ![]usize {
-    var mults = std.AutoHashMap(usize, void).init(alloc);
-    defer mults.deinit();
+    var cache = std.AutoHashMap(usize, void).init(alloc);
+    defer cache.deinit();
 
     var list = try std.ArrayList(usize).initCapacity(alloc, 0);
 
@@ -100,16 +100,16 @@ fn findGeneralizedRepunits(alloc: std.mem.Allocator, min: usize, max: usize, fix
 
             var factor: usize = 0;
             for (0..blocks) |i| {
-                factor += std.math.pow(usize, 10, @intCast(i * chunk));
+                factor += std.math.pow(usize, 10, i * chunk);
             }
 
-            const startA: usize = std.math.pow(usize, 10, @intCast(chunk - 1));
-            const endA: usize = std.math.pow(usize, 10, @intCast(chunk)) - 1;
+            const startA: usize = std.math.pow(usize, 10, chunk - 1);
+            const endA: usize = std.math.pow(usize, 10, chunk) - 1;
 
             for (startA..endA + 1) |A| {
                 const N = A * factor;
-                if (N >= min and N <= max and mults.get(N) == null) {
-                    try mults.put(N, undefined);
+                if (N >= min and N <= max and cache.get(N) == null) {
+                    try cache.put(N, undefined);
                     try list.append(alloc, N);
                 }
             }
