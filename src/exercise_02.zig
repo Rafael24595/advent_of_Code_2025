@@ -1,5 +1,6 @@
 const std = @import("std");
 const helper = @import("helper.zig");
+const utils = @import("utils.zig");
 
 pub fn execute_01() !void {
     std.debug.print("\n------------------", .{});
@@ -34,8 +35,8 @@ pub fn execute_blocks(alloc: std.mem.Allocator, ranges: []helper.Pair, fix_block
     for (ranges) |pair| {
         const matches = try findGeneralizedRepunitsWithDocs(alloc, pair.a, pair.b, fix_blocks);
 
-        std.debug.print("\nRange  : {d} - {d}\n", .{ pair.a, pair.b });
-        std.debug.print("Matches: {any}\n", .{matches});
+        helper.printExp("\nRange  : {d} - {d}\n", .{ pair.a, pair.b });
+        helper.printExp("Matches: {any}\n\n", .{matches});
 
         for (matches) |match| {
             total += match;
@@ -45,8 +46,12 @@ pub fn execute_blocks(alloc: std.mem.Allocator, ranges: []helper.Pair, fix_block
     }
 
     const end_ms = std.time.milliTimestamp();
-    std.debug.print("\nTotal: {d}\n", .{total});
-    std.debug.print("Time: {d}ms\n\n", .{end_ms - start_ms});
+    
+    const time = try utils.formatTime(alloc, end_ms - start_ms);
+    defer alloc.free(time);
+
+    std.debug.print("Total: {d}\n", .{total});
+    std.debug.print("Time: {s}\n\n", .{time});
 }
 
 fn parse_input(alloc: std.mem.Allocator) ![]helper.Pair {
@@ -129,63 +134,63 @@ fn findGeneralizedRepunitsWithDocs(alloc: std.mem.Allocator, min: usize, max: us
 
     var list = try std.ArrayList(usize).initCapacity(alloc, 0);
 
-    try helper.printExp("--- Explanation -----------------------------------------------\n\n", .{});
-    try helper.printExp("Searching for generalized repunits within the range [{d}, {d}].\n\n", .{ min, max });
+    helper.printExp("--- Explanation -----------------------------------------------\n\n", .{});
+    helper.printExp("Searching for generalized repunits within the range [{d}, {d}].\n\n", .{ min, max });
 
     const minDigits = std.math.log10(min) + 1;
     const maxDigits = std.math.log10(max) + 1;
 
-    try helper.printExp("Minimum digit count in range : {d}.\n", .{minDigits});
-    try helper.printExp("Maximum digit count in range : {d}.\n", .{maxDigits});
+    helper.printExp("Minimum digit count in range : {d}.\n", .{minDigits});
+    helper.printExp("Maximum digit count in range : {d}.\n", .{maxDigits});
 
-    try helper.printExp("Restriction on number of blocks (optional): {any}.\n", .{fix_blocks});
+    helper.printExp("Restriction on number of blocks (optional): {any}.\n", .{fix_blocks});
 
     for (minDigits..maxDigits + 1) |size| {
-        try helper.printExp("\nEvaluating numbers with {d} digits:\n", .{size});
+        helper.printExp("\nEvaluating numbers with {d} digits:\n", .{size});
 
         for (1..(size / 2) + 1) |chunk| {
-            try helper.printExp("\n Trying chunk size = {d} digits:\n\n", .{chunk});
+            helper.printExp("\n Trying chunk size = {d} digits:\n\n", .{chunk});
 
             if (size % chunk != 0) {
-                try helper.printExp(" * {d} does not divide {d} exactly. cannot form a repeated pattern. Skipping.\n", .{ chunk, size });
+                helper.printExp(" * {d} does not divide {d} exactly. cannot form a repeated pattern. Skipping.\n", .{ chunk, size });
                 continue;
             }
 
             const blocks = size / chunk;
 
-            try helper.printExp(" Number of repetitions (blocks) = size / chunk = {d}.\n", .{blocks});
+            helper.printExp(" Number of repetitions (blocks) = size / chunk = {d}.\n", .{blocks});
 
             if (fix_blocks != null and blocks != fix_blocks) {
-                try helper.printExp(" * Number of blocks does not match the required restriction ({d}). Skipping\n", .{fix_blocks.?});
+                helper.printExp(" * Number of blocks does not match the required restriction ({d}). Skipping\n", .{fix_blocks.?});
                 continue;
             }
 
-            try helper.printExp(" Building factor: summing powers of 10 spaced every {d} digits.\n", .{chunk});
+            helper.printExp(" Building factor: summing powers of 10 spaced every {d} digits.\n", .{chunk});
 
             var factor: usize = 0;
             for (0..blocks) |i| {
                 factor += std.math.pow(usize, 10, i * chunk);
             }
 
-            try helper.printExp(" Resulting factor template: {d}\n", .{factor});
+            helper.printExp(" Resulting factor template: {d}\n", .{factor});
 
             const startA: usize = std.math.pow(usize, 10, chunk - 1);
             const endA: usize = std.math.pow(usize, 10, chunk) - 1;
 
-            try helper.printExp("\n Evaluating all chunk values A in the range [{d}, {d}] (all {d}-digit numbers):\n", .{ startA, endA, chunk });
+            helper.printExp("\n Evaluating all chunk values A in the range [{d}, {d}] (all {d}-digit numbers):\n", .{ startA, endA, chunk });
 
             for (startA..endA + 1) |A| {
                 const N = A * factor;
 
-                try helper.printExp("\n  Calculating N: A ({d}) multiplied by factor ({d}).\n", .{ A, factor });
+                helper.printExp("\n  Calculating N: A ({d}) multiplied by factor ({d}).\n", .{ A, factor });
 
                 if (N > max) {
-                    try helper.printExp("  N = {d} exceeds the upper limit ({d}). Stopping iteration for this chunk (future values will be larger).\n", .{ N, max });
+                    helper.printExp("  N = {d} exceeds the upper limit ({d}). Stopping iteration for this chunk (future values will be larger).\n", .{ N, max });
                     break;
                 }
 
                 if (cache.get(N) != null) {
-                    try helper.printExp("  N = {d} already processed earlier. Skipping.\n", .{N});
+                    helper.printExp("  N = {d} already processed earlier. Skipping.\n", .{N});
                     continue;
                 }
 
@@ -193,15 +198,15 @@ fn findGeneralizedRepunitsWithDocs(alloc: std.mem.Allocator, min: usize, max: us
                     try cache.put(N, undefined);
                     try list.append(alloc, N);
 
-                    try helper.printExp("  N = {d} is within [{d}, {d}]. Added to results.\n", .{ N, min, max });
+                    helper.printExp("  N = {d} is within [{d}, {d}]. Added to results.\n", .{ N, min, max });
                 } else {
-                    try helper.printExp("  N = {d} is outside [{d}, {d}]. Discarded.\n", .{ N, min, max });
+                    helper.printExp("  N = {d} is outside [{d}, {d}]. Discarded.\n", .{ N, min, max });
                 }
             }
         }
     }
 
-    try helper.printExp("\n--- ----------- -----------------------------------------------\n\n", .{});
+    helper.printExp("\n--- ----------- -----------------------------------------------\n\n", .{});
 
     return list.items;
 }

@@ -1,4 +1,5 @@
 const std = @import("std");
+const utils = @import("utils.zig");
 
 pub fn execute() !void {
     std.debug.print("\n------------------------", .{});
@@ -35,6 +36,9 @@ pub fn execute() !void {
         std.debug.print("|  Move {d:<3} clicks to {s:<5}: {d:<2}  |  Loops: {d}  |\n", .{ @abs(step), direction, cursor, loops });
     }
     const end_ms = std.time.milliTimestamp();
+
+    const time = try utils.formatTime(alloc, end_ms - start_ms);
+    defer alloc.free(time);
 
     std.debug.print("\nZeroes: {d}\n", .{count});
     std.debug.print("Loops: {d}\n", .{loops});
