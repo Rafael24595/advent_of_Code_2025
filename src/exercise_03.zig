@@ -11,7 +11,7 @@ pub fn execute_01() !void {
 
     const alloc = std.heap.page_allocator;
 
-    const lines = try parse_input(alloc);
+    const lines = try helper.parseInputLines(alloc, "src/source/source_03_00.txt");
     defer alloc.free(lines);
 
     try execute(alloc, lines, 2);
@@ -24,29 +24,10 @@ pub fn execute_02() !void {
 
     const alloc = std.heap.page_allocator;
 
-    const lines = try parse_input(alloc);
+    const lines = try helper.parseInputLines(alloc, "src/source/source_03_00.txt");
     defer alloc.free(lines);
 
     try execute(alloc, lines, 12);
-}
-
-fn parse_input(alloc: std.mem.Allocator) ![][]u8 {
-    var file = try std.fs.cwd().openFile("src/source/source_03_00.txt", .{});
-    defer file.close();
-
-    var buffer: [1024]u8 = undefined;
-
-    var file_reader = file.reader(&buffer);
-    const reader = &file_reader.interface;
-
-    var list = try std.ArrayList([]u8).initCapacity(alloc, 0);
-
-    while (reader.takeDelimiterExclusive('\n')) |line| {
-        const clean_line = try alloc.dupe(u8, std.mem.trim(u8, line, " \n\t\r"));
-        try list.append(alloc, clean_line);
-    } else |_| {}
-
-    return list.items;
 }
 
 fn execute(alloc: std.mem.Allocator, lines: [][]u8, limit: usize) !void {

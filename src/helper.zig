@@ -17,7 +17,7 @@ pub fn readEnvsWithFile(allocator: std.mem.Allocator, path: []const u8) !std.pro
             return err;
         }
     };
-    
+
     defer file.close();
 
     var buffer: [1024]u8 = undefined;
@@ -35,6 +35,25 @@ pub fn readEnvsWithFile(allocator: std.mem.Allocator, path: []const u8) !std.pro
     } else |_| {}
 
     return env;
+}
+
+pub fn parseInputLines(alloc: std.mem.Allocator, sub_path: []const u8) ![][]u8 {
+    var file = try std.fs.cwd().openFile(sub_path, .{});
+    defer file.close();
+
+    var buffer: [1024]u8 = undefined;
+
+    var file_reader = file.reader(&buffer);
+    const reader = &file_reader.interface;
+
+    var list = try std.ArrayList([]u8).initCapacity(alloc, 0);
+
+    while (reader.takeDelimiterExclusive('\n')) |line| {
+        const clean_line = try alloc.dupe(u8, std.mem.trim(u8, line, " \n\t\r"));
+        try list.append(alloc, clean_line);
+    } else |_| {}
+
+    return list.items;
 }
 
 pub fn printExp(comptime fmt: []const u8, args: anytype) void {
