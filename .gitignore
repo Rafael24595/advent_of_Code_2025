@@ -1,2 +1,5 @@
 .zig-cache
 zig-out
+.env
+source_*_01.txt
+source_*_02.txt
