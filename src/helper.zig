@@ -7,6 +7,10 @@ pub const Pair = struct {
     b: usize,
 };
 
+pub fn comparePairAsc(_: void, l: Pair, r: Pair) bool {
+    return l.a < r.a;
+}
+
 pub fn readEnvsWithFile(allocator: std.mem.Allocator, path: []const u8) !std.process.EnvMap {
     var env = try std.process.getEnvMap(allocator);
 
