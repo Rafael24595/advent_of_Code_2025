@@ -1,6 +1,7 @@
 const std = @import("std");
 const helper = @import("helper.zig");
 const utils = @import("utils.zig");
+const configuration = @import("configuration.zig");
 
 const FilePath = "src/source/source_06_00.txt";
 
@@ -16,16 +17,17 @@ pub fn execute_01() !void {
     defer alloc.free(result.@"0");
     defer alloc.free(result.@"1");
 
-    helper.printExp("Matrix: {any}\n", .{result.@"0"});
-    helper.printExp("Symbols: {any}\n", .{result.@"1"});
+    helper.printExp("\nMatrix: {any}\n", .{result.@"0"});
+    print_operators(result.@"1");
 
-    try operate(result.@"0", result.@"1");
+    const total = try operate(result.@"0", result.@"1");
 
     const end_ms = std.time.milliTimestamp();
 
     const time = try utils.millisecondsToTime(alloc, end_ms - start_ms, null);
     defer alloc.free(time);
 
+    std.debug.print("\nTotal: {d}\n", .{total});
     std.debug.print("Time: {s}\n\n", .{time});
 }
 
@@ -41,16 +43,17 @@ pub fn execute_02() !void {
     defer alloc.free(result.@"0");
     defer alloc.free(result.@"1");
 
-    helper.printExp("Matrix: {any}\n", .{result.@"0"});
-    helper.printExp("Symbols: {any}\n", .{result.@"1"});
+    helper.printExp("\nMatrix: {any}\n", .{result.@"0"});
+    print_operators(result.@"1");
 
-    try operate(result.@"0", result.@"1");
+    const total = try operate(result.@"0", result.@"1");
 
     const end_ms = std.time.milliTimestamp();
 
     const time = try utils.millisecondsToTime(alloc, end_ms - start_ms, null);
     defer alloc.free(time);
 
+    std.debug.print("\nTotal: {d}\n", .{total});
     std.debug.print("Time: {s}\n\n", .{time});
 }
 
@@ -71,7 +74,7 @@ pub fn parseInput_01_Symbols(alloc: std.mem.Allocator, line: []u8) ![]u8 {
         const clean_symbol = std.mem.trim(u8, symbol, " \n\t\r");
         if (clean_symbol.len == 0 or
             clean_symbol[0] != '+' and
-            clean_symbol[0] != '*')
+                clean_symbol[0] != '*')
         {
             continue;
         }
@@ -125,14 +128,21 @@ pub fn parseInput_02(alloc: std.mem.Allocator) !struct { [][]i64, []u8 } {
             fix_position = symbol_line.len;
         }
 
+        helper.printExp("\n({d}) Operator '{c}' found:\n", .{ symbols.items.len + 1, symbol_line[position.?] });
+        helper.printExp("\nRange ({d}): [{d}, {d}]:\n", .{ fix_position.? - position.? - 1, position.?, fix_position.? - 1 });
+
         const numbers = try parseInput_02_Chunk(alloc, position.?, fix_position.?, lines);
         if (numbers.len > 0) {
             try matrix.append(alloc, numbers);
         }
 
-        if (symbol_line[position.?] == '+' or symbol_line[position.?] == '*') {
-            try symbols.append(alloc, symbol_line[position.?]);
+        helper.printExp("\nNumbers ({c}): {any}\n", .{ symbol_line[position.?], numbers });
+
+        if (symbol_line[position.?] != '+' and symbol_line[position.?] != '*') {
+            std.debug.panic("\nUnsupported operator '{c}'.\n", .{symbol_line[position.?]});
         }
+
+        try symbols.append(alloc, symbol_line[position.?]);
 
         position = new_position;
     }
@@ -146,8 +156,11 @@ pub fn parseInput_02_Chunk(alloc: std.mem.Allocator, init: usize, end: usize, li
     for (init..end) |i| {
         var str_number = try alloc.alloc(u8, lines.len);
 
+        helper.printExp("\n Find for chunk in position {d}:\n\n", .{i - init});
+
         var count: usize = 0;
         for (lines) |line| {
+            helper.printExp("  {s}\n", .{line[init..end]});
             str_number[count] = line[i];
             count += 1;
         }
@@ -158,13 +171,16 @@ pub fn parseInput_02_Chunk(alloc: std.mem.Allocator, init: usize, end: usize, li
         }
 
         const number = try std.fmt.parseInt(i64, clean_number, 10);
+
+        helper.printExp("\n Column Result: {d}\n", .{number});
+
         try row.append(alloc, number);
     }
 
     return row.items;
 }
 
-fn operate(matrix: [][]i64, symbols: []u8) !void {
+fn operate(matrix: [][]i64, symbols: []u8) !i64 {
     var total: i64 = 0;
     for (symbols, 0..) |symbol, i| {
         total += switch (symbol) {
@@ -174,7 +190,7 @@ fn operate(matrix: [][]i64, symbols: []u8) !void {
         };
     }
 
-    std.debug.print("\nTotal: {d}\n", .{total});
+    return total;
 }
 
 fn add(row: []i64) i64 {
@@ -191,4 +207,17 @@ fn mul(row: []i64) i64 {
         total *= cell;
     }
     return total;
+}
+
+fn print_operators(operators: []u8) void {
+    if (!configuration.explain) {
+        return;
+    }
+
+    helper.printExp("Symbols: {{ ", .{});
+    for (operators, 0..) |value, i| {
+        if (i != 0) helper.printExp(", ", .{});
+        helper.printExp("{c}", .{value});
+    }
+    helper.printExp(" }}\n", .{});
 }
