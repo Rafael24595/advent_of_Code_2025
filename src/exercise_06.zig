@@ -16,15 +16,15 @@ pub fn execute_01() !void {
     defer alloc.free(result.@"0");
     defer alloc.free(result.@"1");
 
-    const end_ms = std.time.milliTimestamp();
-
-    const time = try utils.millisecondsToTime(alloc, end_ms - start_ms, null);
-    defer alloc.free(time);
-
     helper.printExp("Matrix: {any}\n", .{result.@"0"});
     helper.printExp("Symbols: {any}\n", .{result.@"1"});
 
     try operate(result.@"0", result.@"1");
+
+    const end_ms = std.time.milliTimestamp();
+
+    const time = try utils.millisecondsToTime(alloc, end_ms - start_ms, null);
+    defer alloc.free(time);
 
     std.debug.print("Time: {s}\n\n", .{time});
 }
@@ -41,15 +41,15 @@ pub fn execute_02() !void {
     defer alloc.free(result.@"0");
     defer alloc.free(result.@"1");
 
-    const end_ms = std.time.milliTimestamp();
-
-    const time = try utils.millisecondsToTime(alloc, end_ms - start_ms, null);
-    defer alloc.free(time);
-
     helper.printExp("Matrix: {any}\n", .{result.@"0"});
     helper.printExp("Symbols: {any}\n", .{result.@"1"});
 
     try operate(result.@"0", result.@"1");
+
+    const end_ms = std.time.milliTimestamp();
+
+    const time = try utils.millisecondsToTime(alloc, end_ms - start_ms, null);
+    defer alloc.free(time);
 
     std.debug.print("Time: {s}\n\n", .{time});
 }
