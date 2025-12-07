@@ -21,8 +21,11 @@ pub fn main() !void {
     }
 
     if (env.get("EXERCISE_01")) |val| {
-        if (std.mem.eql(u8, val, "true")) {
-            try exercise_01.execute();
+        if (std.mem.containsAtLeast(u8, val, 1, "01")) {
+            try exercise_01.execute_01();
+        }
+        if (std.mem.containsAtLeast(u8, val, 1, "02")) {
+            try exercise_01.execute_02();
         }
     }
 
